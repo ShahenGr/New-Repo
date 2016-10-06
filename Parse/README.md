@@ -1,1 +1,1 @@
-# New-Repo##To compile this program you need to have installed additional libraries..   Gumbo -- HTML parser("https://github.com/google/gumbo-parser")## InstallFor the compilation run Makefile by command make
+# New-Repo##To compile this program you need to have installed additional libraries..   Gumbo -- HTML parser("https://github.com/google/gumbo-parser")## InstallFor the compilation run Makefile by command make## parse_with_tegs_directlyPrints today's(currently the first page) ads from advertisements web page.
