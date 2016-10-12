@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     }
     today();
     fprintf(fptr, "%s\n", head);
-    for(i = 0; i < 1; ++i)
+    for(i = 0; i < 100; ++i)
     {
         init_string(&s);
         memset(buf, 0, sizeof(buf));
