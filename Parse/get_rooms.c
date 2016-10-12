@@ -52,11 +52,12 @@ int main(int argc, char* argv[])
     }
     today();
     fprintf(fptr, "%s\n", head);
-    for(i = 0; i < 100; ++i)
+    for(i = 0; i < 1; ++i)
     {
         init_string(&s);
         memset(buf, 0, sizeof(buf));
         sprintf(buf, "https://www.list.am/en/category/60/%d?rooms=%d", i + 1, rnum);
+        fprintf(stdout, "page %d --> %s\n", i + 1, buf);
         get_string(&s, buf);
         output = gumbo_parse_with_options( &kGumboDefaultOptions, s.ptr, s.len );
         get_content(output->root, "td", fptr);
@@ -232,12 +233,28 @@ void get_data(char* date, FILE* file)
 
 char* correct_str(char* attr)
 {
-    if(strstr(attr, "<img"))
+    char* beg = NULL;
+    char* end;
+    if(( beg = strstr(attr, "<img")) != NULL)
     {
+        beg = strstr(beg, ".net");
+        end = strstr(beg, "\">");
+        if(beg && end)
+        {
+            int sz = end - beg - 2;
+            char* str = (char*)malloc(strlen(attr) + 20);
+            beg += 4;
+            printf("S == %.*s\n", sz, beg);
+            if(str)
+            {
+                sprintf(str, "<img src=\"https://images-listam.netdna-ssl.com%.*s", sz, beg);
+                return str;
+            }
+        }
         return NULL;
     }
-    char* beg = strstr(attr, "=\"/");
-    char* end = strstr(attr, "\">");
+    beg = strstr(attr, "=\"/");
+    end = strstr(attr, "\">");
     if(beg && end)
     {
         int sz = end - beg - 2;
