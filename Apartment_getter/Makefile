@@ -8,7 +8,7 @@ CSQLITELIB = -lsqlite3
 
 all: get_rooms
 
-get_rooms: get_rooms.c sqldb.c
+get_rooms: get_rooms_main.c get_rooms.c sqldb.c
 	$(CC) $^ $(CFLAGS) $(CGUMBOLIB) $(CCURLLIB) $(CSQLITELIB)  -o $@
 
 

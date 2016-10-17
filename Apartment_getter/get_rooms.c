@@ -1,97 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <curl/curl.h>
-#include <sys/stat.h>
-#include <assert.h>
-#include <time.h>
-#include <setjmp.h>
-#include <unistd.h>
-#include "gumbo.h"
-#include <sqlite3.h>
-#include "sqldb.h"
-
-struct string
-{
-    char *ptr;
-    size_t len;
-};
-char day[64];
-jmp_buf env_buffer;
-
-
-void init_string(struct string*);
-size_t writefunc(void*, size_t, size_t, struct string*);
-void get_string(struct string*, const char*);
-void get_content(const GumboNode*, const char*, sqlite3*, char*, int);
-size_t take_len(const char*, size_t);
-char* get_data(char*, int*);
-char* correct_str(char*);
- 
-
-
-int main(int argc, char* argv[])
-{
-    if(argc != 2)
-    {
-        fprintf(stderr, "<usage: <%s> <room numbers>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
-    sqlite3 *db;
-    char *zErrMsg = 0;
-    int rc;
-    struct string s;
-    int i;
-    GumboOutput* output;
-    char buf[50];
-    int rnum;
-    char* end;
-    int val;
-
-    rnum = strtol(argv[1], &end, 10);
-    rnum = (rnum <= 0 && rnum >= 9) ? 1 : rnum;
-    rc = sqlite3_open("rooms.db", &db);
-    if( rc )
-    {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return 1;
-    }
-    else
-    {
-        fprintf(stderr, "Opened database successfully\n");
-    }
-    today();
-    int day_count = 0;
-    printf("%s\n", day);
-    val = setjmp( env_buffer );
-    if(val != 0)
-    {
-        free(s.ptr);
-        gumbo_destroy_output(&kGumboDefaultOptions, output);
-        day_count++;
-        sleep(5);
-    }
-    if(day_count == 560)
-    {
-        today;
-        printf("\n%s\n", day);
-        day_count = 0;
-    }
-    init_string(&s);
-    memset(buf, 0, sizeof(buf));
-    sprintf(buf, "https://www.list.am/en/category/60/1?_a4=%d", rnum);
-    //fprintf(stdout, "page --> %s\n", buf);
-    get_string(&s, buf);
-    output = gumbo_parse_with_options( &kGumboDefaultOptions, s.ptr, s.len );
-    get_content(output->root, "td", db, zErrMsg, rnum);
-
-    puts("");
-
-    return 0;
-}
-
-
+#include "get_rooms.h"
 
 void init_string(struct string *s)
 {
@@ -185,7 +92,6 @@ void get_content(const GumboNode* root, const char* tag_name, sqlite3* db, char*
                 {
                     char room[5];
                     sprintf(room, "%d", rnum);
-                    //printf("name = %s\nimg = %s\n", str[1], str[0]);
                     write_into_db(db, NULL, zErrMsg, str[1], str[0], day, room);
                     fprintf(stderr, "**************************************************************************\nA new apartment has written into DB\n");
                 }
@@ -193,8 +99,6 @@ void get_content(const GumboNode* root, const char* tag_name, sqlite3* db, char*
                 {
                     char room[5];
                     sprintf(room, "%d", rnum);
-                    //printf("name = %s\nname = %s\n", str[1], str[0]);
-                    //write_into_db(db, NULL, zErrMsg, str[0], NULL, day);
                     write_into_db(db, NULL, zErrMsg, str[0], "NULL", day, room);
                     fprintf(stderr, "**************************************************************************\nA new apartment has written into DB\n");
                 }
@@ -214,15 +118,6 @@ void get_content(const GumboNode* root, const char* tag_name, sqlite3* db, char*
     return;
 }
 
-/*
-void today(void)
-{
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-    strftime(day, sizeof(day), "%A, %B %d, %Y", tm);
-    return;
-}
-*/
 size_t take_len(const char* str, size_t len)
 {
     int count = 0;
