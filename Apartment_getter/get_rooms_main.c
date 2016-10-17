@@ -5,11 +5,6 @@ extern char day[];
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2)
-    {
-        fprintf(stderr, "<usage: <%s> <room numbers>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
     sqlite3 *db;
     char *zErrMsg = 0;
     int rc;
@@ -21,8 +16,6 @@ int main(int argc, char* argv[])
     char* end;
     int val;
 
-    rnum = strtol(argv[1], &end, 10);
-    rnum = (rnum <= 0 && rnum >= 9) ? 1 : rnum;
     rc = sqlite3_open("rooms.db", &db);
     if( rc )
     {
@@ -35,15 +28,21 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Opened database successfully\n");
     }
     today();
+    rnum = 0;
     int day_count = 0;
     printf("%s\n", day);
     val = setjmp( env_buffer );
+    if(rnum == 7)
+    {
+        rnum = 0;
+    }
+    rnum++;
     if(val != 0)
     {
         free(s.ptr);
         gumbo_destroy_output(&kGumboDefaultOptions, output);
         day_count++;
-        sleep(5);
+        sleep(1);
     }
     if(day_count == 560)
     {
@@ -57,8 +56,5 @@ int main(int argc, char* argv[])
     get_string(&s, buf);
     output = gumbo_parse_with_options( &kGumboDefaultOptions, s.ptr, s.len );
     get_content(output->root, "td", db, zErrMsg, rnum);
-
-    puts("");
-
     return 0;
 }
