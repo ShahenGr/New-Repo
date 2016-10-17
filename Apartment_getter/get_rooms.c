@@ -257,7 +257,6 @@ char* get_data(char* date, int* flag)
         else
         {
             printf("End of today's list\n");
-            exit(EXIT_SUCCESS);
         }
     }
 
