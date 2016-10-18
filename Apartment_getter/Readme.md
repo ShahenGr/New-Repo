@@ -2,8 +2,8 @@
 
 ## To compile this program you need to have installed additional libraries.
  
-  .   Gumbo -- HTML parser("https://github.com/google/gumbo-parser")
-  .   Curl  -- To get HTML pages into
+  * Gumbo -- HTML parser("https://github.com/google/gumbo-parser") 
+  * Curl  -- To get HTML pages into
 
 ## Install
 
