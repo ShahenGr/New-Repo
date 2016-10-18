@@ -92,14 +92,14 @@ void get_content(const GumboNode* root, const char* tag_name, sqlite3* db, char*
                 {
                     char room[5];
                     sprintf(room, "%d", rnum);
-                    write_into_db(db, NULL, zErrMsg, str[1], str[0], day, room);
+                    write_into_db(db, NULL, zErrMsg, str[1], str[0], day, room, 1);
                     fprintf(stderr, "**************************************************************************\nA new apartment has written into DB\n");
                 }
                 else
                 {
                     char room[5];
                     sprintf(room, "%d", rnum);
-                    write_into_db(db, NULL, zErrMsg, str[0], "NULL", day, room);
+                    write_into_db(db, NULL, zErrMsg, str[0], "NULL", day, room, 1);
                     fprintf(stderr, "**************************************************************************\nA new apartment has written into DB\n");
                 }
                 tt = 0;

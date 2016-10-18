@@ -56,17 +56,18 @@ void print_db(sqlite3* db, const char* data, char* zErrMsg)
 
 }
 
-int write_into_db(sqlite3* db, int* data, char* zErrMsg, const char* name, const char* link, const char* time, const char* room)
+int write_into_db(sqlite3* db, int* data, char* zErrMsg, const char* name, const char* link, const char* time, const char* room, int web)
 {
     int rc;
     char str[100];
     char* q = "SELECT NAME FROM ROOMS";
-    char* s = "INSERT INTO ROOMS (NAME,IMG,DATE,ROOM_NUMBER) SELECT ";
+    char* s = "INSERT INTO ROOMS (NAME,IMG,DATE,ROOM_NUMBER, WEBS) SELECT ";
     char* s1 = "WHERE NOT EXISTS(SELECT 1 FROM ROOMS WHERE NAME = ";
-    int sz = strlen(s) + strlen(s1) + 2 * strlen(name) + strlen(link) + strlen(time) + strlen(room) + 20;
+    int sz = strlen(s) + strlen(s1) + 2 * strlen(name) + strlen(link) + strlen(time) + strlen(room) + 22;
     char sql[sz];
-
-    sprintf(sql, "%s '%s', '%s', '%s', '%s' %s '%s');", s, name, link, time, room, s1, name);
+    
+    sqlite3_exec(db, "PRAGMA foreign_keys = ON;", 0, 0, 0);
+    sprintf(sql, "%s '%s', '%s', '%s', '%s', %d %s '%s');", s, name, link, time, room, web, s1, name);
     rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
     if( rc != SQLITE_OK )
     {
@@ -81,7 +82,7 @@ int write_into_db(sqlite3* db, int* data, char* zErrMsg, const char* name, const
 int delete_from_db(sqlite3* db, sqlite3_stmt* stmt, const char* data, char* zErrMsg)
 {
     int rc;
-    char* sql = "DELETE FROM ROOMS WHERE TIME LIKE ?;";
+    char* sql = "DELETE FROM ROOMS WHERE DATE LIKE ?;";
     rc = sqlite3_prepare_v2(db, sql, -1, &stmt, 0);
     if( rc != SQLITE_OK )
     {
