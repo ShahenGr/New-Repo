@@ -11,6 +11,6 @@ For the compilation run Makefile by command make
 
 ## Usage
 
-\<get_rooms\> 
+\<./generator\> 
 
 This is the very beginig of this app. Currently there is many things to be done
