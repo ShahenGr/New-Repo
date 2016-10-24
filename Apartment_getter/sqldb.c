@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 #include <string.h>
-#include "sqldb.h"
 #include <time.h>
+#include <unistd.h>
+#include "sqldb.h"
 
 char day[64];
 
@@ -56,7 +57,7 @@ void print_db(sqlite3* db, const char* data, char* zErrMsg)
 
 }
 
-int write_into_db(sqlite3* db, int* data, char* zErrMsg, const char* name, const char* link, const char* time, const char* room, int web)
+int write_into_db(int* data, const char* name, const char* link, const char* time, const char* room, int web)
 {
     int rc;
     char str[100];
@@ -65,16 +66,45 @@ int write_into_db(sqlite3* db, int* data, char* zErrMsg, const char* name, const
     char* s1 = "WHERE NOT EXISTS(SELECT 1 FROM ROOMS WHERE NAME = ";
     int sz = strlen(s) + strlen(s1) + 2 * strlen(name) + strlen(link) + strlen(time) + strlen(room) + 22;
     char sql[sz];
-    
+    char* zErrMsg;
+    sqlite3* db;
+    rc = sqlite3_open("rooms.db", &db);
+    if( rc )
+    {
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        return 1;
+    }
+    sqlite3_mutex* sql_mut;
+    sql_mut = sqlite3_db_mutex(db);
+    if(sql_mut == NULL)
+    {
+        fprintf(stderr, "MUTEX ERROR IN DB\n");
+    }
+    int f = sqlite3_mutex_try(sql_mut);
+    while(f == SQLITE_BUSY )
+    {
+        sqlite3_sleep(5);
+        f = sqlite3_mutex_try(sql_mut);
+    }
     sqlite3_exec(db, "PRAGMA foreign_keys = ON;", 0, 0, 0);
     sprintf(sql, "%s '%s', '%s', '%s', '%s', %d %s '%s');", s, name, link, time, room, web, s1, name);
     rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+    while(rc == SQLITE_BUSY )
+    {
+        sqlite3_sleep(5);
+        rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+    }
+
     if( rc != SQLITE_OK )
     {
         fprintf(stderr, "SQL write error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
+        sqlite3_mutex_leave(sql_mut);
         return 1;
     }
+    sqlite3_mutex_leave(sql_mut);
+    sqlite3_close(db);
 
     return 0;
 }
@@ -114,6 +144,7 @@ int delete_from_db(sqlite3* db, sqlite3_stmt* stmt, const char* data, char* zErr
     }while(step == SQLITE_ROW);
     sqlite3_finalize(stmt);
 
+    printf("\nThe DB is cleaned succesfuly\n");
     return 0;
 }
 
@@ -153,7 +184,7 @@ int get_day(char* date)
 
 char* get_name(int week)
 {
-    int wday = ( week + 5 ) % 7;
+    int wday = ( week + 2 ) % 7;
     switch(wday)
     {
         case 0:
